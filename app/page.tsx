@@ -74,7 +74,7 @@ export default function Home() {
           value={
             metrics.isLoading
               ? "-"
-              : formatTokenCount(metricsData?.tokenUsage.today ?? 0)
+              : formatTokenCount(metricsData?.tokenUsage?.today ?? 0)
           }
           icon={<Activity className="h-4 w-4" />}
         />
@@ -103,7 +103,7 @@ export default function Home() {
               <AgentCard
                 key={agent.name}
                 agent={agent}
-                heartbeat={heartbeatData?.agents[agent.name]}
+                heartbeat={heartbeatData?.agents?.[agent.name]}
               />
             ))
           )}
