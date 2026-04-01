@@ -1,13 +1,18 @@
 "use client";
 
-import type { Agent, HeartbeatAgent } from "@/lib/types";
+import type { Agent, AgentAction, HeartbeatAgent } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Pause, Play, Zap } from "lucide-react";
 
 interface AgentCardProps {
   agent: Agent;
   heartbeat?: HeartbeatAgent;
+  onClick?: () => void;
+  onAction?: (action: AgentAction, agentName: string) => void;
+  actionLoading?: boolean;
 }
 
 function formatRelativeTime(dateStr: string): string {
@@ -30,14 +35,28 @@ function formatMs(ms: number): string {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
-export function AgentCard({ agent, heartbeat }: AgentCardProps) {
+export function AgentCard({
+  agent,
+  heartbeat,
+  onClick,
+  onAction,
+  actionLoading,
+}: AgentCardProps) {
   const budgetPct =
     agent.budget_monthly_tokens > 0
       ? agent.tokens_used_this_month / agent.budget_monthly_tokens
       : 0;
 
+  const isRunning = !!heartbeat;
+
   return (
-    <Card size="sm">
+    <Card
+      size="sm"
+      className={cn(
+        onClick && "cursor-pointer transition-colors hover:ring-foreground/20"
+      )}
+      onClick={onClick}
+    >
       <CardContent className="space-y-3">
         {/* Header: name + role badge */}
         <div className="flex items-start justify-between gap-2">
@@ -88,6 +107,40 @@ export function AgentCard({ agent, heartbeat }: AgentCardProps) {
                 style={{ width: `${Math.min(100, budgetPct * 100)}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        {onAction && (
+          <div className="flex gap-2 pt-1">
+            <Button
+              variant="outline"
+              size="xs"
+              disabled={actionLoading}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction(isRunning ? "pause" : "resume", agent.name);
+              }}
+            >
+              {isRunning ? (
+                <Pause className="size-3" />
+              ) : (
+                <Play className="size-3" />
+              )}
+              {isRunning ? "Pause" : "Resume"}
+            </Button>
+            <Button
+              variant="outline"
+              size="xs"
+              disabled={actionLoading}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction("trigger-now", agent.name);
+              }}
+            >
+              <Zap className="size-3" />
+              Trigger
+            </Button>
           </div>
         )}
       </CardContent>

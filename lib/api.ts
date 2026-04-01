@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   Agent,
+  AgentAction,
   HealthStatus,
   HeartbeatStatus,
   Metrics,
@@ -83,5 +84,26 @@ export function useTasks() {
       return res.data?.tasks ?? res.tasks ?? [];
     },
     refetchInterval: 10000,
+  });
+}
+
+// Mutation for agent heartbeat actions (pause, resume, trigger-now)
+export function useAgentAction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      action,
+      agentName,
+    }: {
+      action: AgentAction;
+      agentName: string;
+    }) => {
+      return proxyPost("heartbeat", { action, agentName });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agents"] });
+      queryClient.invalidateQueries({ queryKey: ["heartbeat-status"] });
+    },
   });
 }

@@ -83,3 +83,13 @@ export interface BehaviorRule {
   active: boolean;
   createdAt: string;
 }
+
+// Agent action types for heartbeat control
+export type AgentAction = "pause" | "resume" | "trigger-now";
+
+// Future-ready heartbeat history entry (not yet served by VPS)
+export interface HeartbeatEvent {
+  timestamp: string;
+  action: string;
+  agentId: string;
+}
