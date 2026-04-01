@@ -83,7 +83,7 @@ export default function Home() {
           value={
             health.isLoading
               ? "-"
-              : formatUptime(healthData?.uptime ?? 0)
+              : formatUptime(healthData?.uptime_seconds ?? 0)
           }
           icon={<Clock className="h-4 w-4" />}
         />

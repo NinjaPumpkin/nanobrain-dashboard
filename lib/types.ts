@@ -1,12 +1,9 @@
 // Health response from GET /api/health
 export interface HealthStatus {
-  status: 'ok' | 'error';
-  database: boolean;
-  telegram: boolean;
-  providers: Record<string, boolean>;
-  uptime: number;
-  memory: { heapUsed: number; heapTotal: number; rss: number };
-  version?: string;
+  status: 'healthy' | 'degraded';
+  uptime_seconds: number;
+  components: Record<string, string>; // { db: "healthy", telegram: "healthy", providers: "healthy" }
+  memory_mb: number;
 }
 
 // Agent from POST /api/agent-registry { action: "list" }

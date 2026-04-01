@@ -66,12 +66,7 @@ export function HealthIndicator({ health, isLoading }: HealthIndicatorProps) {
     );
   }
 
-  const memoryPercent =
-    health.memory.heapTotal > 0
-      ? Math.round((health.memory.heapUsed / health.memory.heapTotal) * 100)
-      : 0;
-
-  const providerEntries = Object.entries(health.providers);
+  const componentEntries = Object.entries(health.components ?? {});
 
   return (
     <Card>
@@ -81,17 +76,9 @@ export function HealthIndicator({ health, isLoading }: HealthIndicatorProps) {
       <CardContent className="space-y-4">
         {/* Health check grid */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2">
-            <StatusDot ok={health.database} />
-            <span className="text-sm">Database</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <StatusDot ok={health.telegram} />
-            <span className="text-sm">Telegram</span>
-          </div>
-          {providerEntries.map(([name, ok]) => (
+          {componentEntries.map(([name, status]) => (
             <div key={name} className="flex items-center gap-2">
-              <StatusDot ok={ok} />
+              <StatusDot ok={status === "healthy"} />
               <span className="text-sm capitalize">{name}</span>
             </div>
           ))}
@@ -100,28 +87,15 @@ export function HealthIndicator({ health, isLoading }: HealthIndicatorProps) {
         {/* Uptime */}
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Uptime</span>
-          <span className="font-medium">{formatUptime(health.uptime)}</span>
+          <span className="font-medium">
+            {formatUptime(health.uptime_seconds)}
+          </span>
         </div>
 
-        {/* Memory usage bar */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Memory</span>
-            <span className="font-medium">{memoryPercent}%</span>
-          </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn(
-                "h-full rounded-full transition-all",
-                memoryPercent > 80
-                  ? "bg-red-500"
-                  : memoryPercent > 60
-                    ? "bg-yellow-500"
-                    : "bg-green-500"
-              )}
-              style={{ width: `${memoryPercent}%` }}
-            />
-          </div>
+        {/* Memory */}
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Memory</span>
+          <span className="font-medium">{health.memory_mb} MB</span>
         </div>
       </CardContent>
     </Card>
