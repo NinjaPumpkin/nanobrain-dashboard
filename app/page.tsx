@@ -1,65 +1,119 @@
-import Image from "next/image";
+"use client";
+
+import { Activity, Bot, Clock } from "lucide-react";
+import { useHealth, useAgentStatus, useAgents, useMetrics } from "@/lib/api";
+import { ConnectionStatus } from "@/components/connection-status";
+import { HealthIndicator } from "@/components/health-indicator";
+import { AgentCard } from "@/components/agent-card";
+import { StatCard } from "@/components/stat-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+function formatTokenCount(count: number): string {
+  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
+  if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
+  return String(count);
+}
+
+function AgentSkeletons() {
+  return (
+    <>
+      {Array.from({ length: 3 }, (_, i) => (
+        <Card key={i} size="sm">
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-3 w-1/2" />
+            <Skeleton className="h-3 w-full" />
+          </CardContent>
+        </Card>
+      ))}
+    </>
+  );
+}
 
 export default function Home() {
+  const health = useHealth();
+  const agentStatus = useAgentStatus();
+  const agents = useAgents();
+  const metrics = useMetrics();
+
+  const healthData = health.data?.data;
+  const agentsData = agents.data?.data ?? [];
+  const heartbeatData = agentStatus.data?.data;
+  const metricsData = metrics.data?.data;
+
+  const isConnected = health.isSuccess;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col gap-6 p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold tracking-tight">NanoBrain</h1>
+        <ConnectionStatus connected={isConnected} />
+      </div>
+
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-3 gap-2">
+        <StatCard
+          title="Agents"
+          value={agents.isLoading ? "-" : agentsData.length}
+          icon={<Bot className="h-4 w-4" />}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <StatCard
+          title="Tokens Today"
+          value={
+            metrics.isLoading
+              ? "-"
+              : formatTokenCount(metricsData?.tokenUsage.today ?? 0)
+          }
+          icon={<Activity className="h-4 w-4" />}
+        />
+        <StatCard
+          title="Uptime"
+          value={
+            health.isLoading
+              ? "-"
+              : formatUptime(healthData?.uptime ?? 0)
+          }
+          icon={<Clock className="h-4 w-4" />}
+        />
+      </div>
+
+      {/* System Health */}
+      <HealthIndicator health={healthData} isLoading={health.isLoading} />
+
+      {/* Agent Grid */}
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold">Agents</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {agents.isLoading ? (
+            <AgentSkeletons />
+          ) : (
+            agentsData.map((agent) => (
+              <AgentCard
+                key={agent.name}
+                agent={agent}
+                heartbeat={heartbeatData?.agents[agent.name]}
+              />
+            ))
+          )}
+          {!agents.isLoading && agentsData.length === 0 && (
+            <p className="col-span-full text-sm text-muted-foreground">
+              No agents registered
+            </p>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
     </div>
   );
 }
