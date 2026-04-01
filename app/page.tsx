@@ -47,10 +47,10 @@ export default function Home() {
   const agents = useAgents();
   const metrics = useMetrics();
 
-  const healthData = health.data?.data;
-  const agentsData = agents.data?.data ?? [];
-  const heartbeatData = agentStatus.data?.data;
-  const metricsData = metrics.data?.data;
+  const healthData = health.data;
+  const agentsData = agents.data ?? [];
+  const heartbeatData = agentStatus.data;
+  const metricsData = metrics.data;
 
   const isConnected = health.isSuccess;
 
@@ -90,7 +90,7 @@ export default function Home() {
       </div>
 
       {/* System Health */}
-      <HealthIndicator health={healthData} isLoading={health.isLoading} />
+      <HealthIndicator health={healthData ?? undefined} isLoading={health.isLoading} />
 
       {/* Agent Grid */}
       <section className="space-y-3">
