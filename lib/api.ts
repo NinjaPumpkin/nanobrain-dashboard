@@ -2,9 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   Agent,
   AgentAction,
+  BehaviorRule,
   HealthStatus,
   HeartbeatStatus,
+  MemoryFact,
   Metrics,
+  PendingFact,
   Task,
 } from "@/lib/types";
 
@@ -104,6 +107,98 @@ export function useAgentAction() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agents"] });
       queryClient.invalidateQueries({ queryKey: ["heartbeat-status"] });
+    },
+  });
+}
+
+// Mutation for global heartbeat service control (pause/resume all)
+export function useHeartbeatControl() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (action: "pause" | "resume") => {
+      return proxyPost("heartbeat", { action });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["heartbeat-status"] });
+      queryClient.invalidateQueries({ queryKey: ["health"] });
+    },
+  });
+}
+
+// --- Memory Hooks ---
+
+export function useMemoryFacts() {
+  return useQuery<MemoryFact[]>({
+    queryKey: ["memory-facts"],
+    queryFn: async () => {
+      const res = await proxyFetch("memory/core");
+      const facts = res.data?.facts ?? res.facts ?? {};
+      return Object.entries(facts).map(([key, value], i) => ({
+        id: String(i),
+        key,
+        value: typeof value === "object" ? JSON.stringify(value) : String(value),
+        createdAt: new Date().toISOString(),
+      }));
+    },
+    refetchInterval: 30000,
+  });
+}
+
+export function useBehaviorRules() {
+  return useQuery<BehaviorRule[]>({
+    queryKey: ["behavior-rules"],
+    queryFn: async () => {
+      const res = await proxyFetch("memory/rules");
+      return res.data ?? res ?? [];
+    },
+    refetchInterval: 30000,
+  });
+}
+
+export function usePendingFacts() {
+  return useQuery<PendingFact[]>({
+    queryKey: ["pending-facts"],
+    queryFn: async () => {
+      const res = await proxyFetch("memory/pending");
+      return res.data ?? res ?? [];
+    },
+    refetchInterval: 15000,
+  });
+}
+
+export function useApproveFact() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (factId: string) => {
+      return proxyFetch(`memory/pending/${factId}/approve`, { method: "POST" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pending-facts"] });
+      queryClient.invalidateQueries({ queryKey: ["memory-facts"] });
+    },
+  });
+}
+
+export function useRejectFact() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (factId: string) => {
+      return proxyFetch(`memory/pending/${factId}/reject`, { method: "POST" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pending-facts"] });
+    },
+  });
+}
+
+export function useArchiveRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ruleId: string) => {
+      return proxyFetch(`memory/rules/${ruleId}/archive`, { method: "POST" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["behavior-rules"] });
     },
   });
 }

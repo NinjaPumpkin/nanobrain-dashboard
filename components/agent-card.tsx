@@ -53,7 +53,7 @@ export function AgentCard({
     <Card
       size="sm"
       className={cn(
-        onClick && "cursor-pointer transition-colors hover:ring-foreground/20"
+        onClick && "cursor-pointer transition-colors hover:border-primary/30 hover:ring-foreground/20"
       )}
       onClick={onClick}
     >

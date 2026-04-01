@@ -1,14 +1,14 @@
 # NanoBrain Dashboard — Session Context
 
 ## Current Task
-Session 3 COMPLETE. Task Management page live — filters, cards, detail drawer.
+Session 4 COMPLETE. Memory page, Services page, and UI polish all live.
 
 ## Key Decisions
-- Followed Agent page pattern: filter tabs, grid, detail drawer
-- Smart sorting: in-progress > pending > completed, high priority first
-- Read-only for now — no task mutation API hooks (VPS actions TBD)
+- Memory page: 3 tabs (Facts/Rules/Pending) with approve/reject/archive mutations
+- Services page: 3 sections (Health/Heartbeat/Metrics) with global pause/resume control
+- UI polish: count badges on Agents tabs, hover transitions on all cards
 
 ## Next Steps
-- Session 4: UI polish pass across Tasks + Agents pages
-- Memory page (app/memory/page.tsx) — types exist, no API hooks yet
-- Services page (app/services/page.tsx) — stub exists
+- Deploy to Vercel (push to trigger)
+- Session 5: Memory detail drawer, real-time heartbeat history
+- Dashboard home: add recent tasks section, quick-action shortcuts

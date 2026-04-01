@@ -51,6 +51,16 @@ export default function AgentsPage() {
   const heartbeatData = agentStatus.data;
   const isConnected = health.isSuccess;
 
+  const counts = STATUS_FILTERS.reduce(
+    (acc, f) => ({
+      ...acc,
+      [f]: f === "all"
+        ? agentsData.length
+        : agentsData.filter((a) => a.status.toLowerCase() === f).length,
+    }),
+    {} as Record<StatusFilter, number>
+  );
+
   const filteredAgents = filterAgents(agentsData, statusFilter);
 
   function handleCardClick(agent: Agent) {
@@ -92,8 +102,13 @@ export default function AgentsPage() {
       >
         <TabsList>
           {STATUS_FILTERS.map((filter) => (
-            <TabsTrigger key={filter} value={filter} className="capitalize">
-              {filter}
+            <TabsTrigger key={filter} value={filter} className="gap-1.5">
+              <span className="capitalize">{filter}</span>
+              {!agents.isLoading && (
+                <span className="text-[10px] text-muted-foreground">
+                  {counts[filter]}
+                </span>
+              )}
             </TabsTrigger>
           ))}
         </TabsList>
