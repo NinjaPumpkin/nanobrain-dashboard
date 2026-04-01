@@ -22,6 +22,8 @@ const navItems = [
 export function BottomNav() {
   const pathname = usePathname();
 
+  if (pathname === "/login") return null;
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border"

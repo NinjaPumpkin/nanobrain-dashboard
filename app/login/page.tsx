@@ -36,7 +36,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/');
+      window.location.href = '/';
     } catch {
       setError('Unable to connect to server');
     } finally {
